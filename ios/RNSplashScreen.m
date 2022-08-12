@@ -25,6 +25,13 @@ RCT_EXPORT_MODULE(SplashScreen)
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(jsLoadError:) name:RCTJavaScriptDidFailToLoadNotification object:nil];
         addedJsLoadErrorObserver = true;
     }
+    
+    if (!waiting) {
+            // https://github.com/crazycodeboy/react-native-splash-screen/issues/439
+            UIView *rootView = [[[[[UIApplication sharedApplication] delegate] window] rootViewController] view];
+            [self showSplash:@"LaunchScreen" inRootView:rootView];
+            return;
+        }
 
     while (waiting) {
         NSDate* later = [NSDate dateWithTimeIntervalSinceNow:0.1];
@@ -34,7 +41,10 @@ RCT_EXPORT_MODULE(SplashScreen)
 
 + (void)showSplash:(NSString*)splashScreen inRootView:(UIView*)rootView {
     if (!loadingView) {
-        loadingView = [[[NSBundle mainBundle] loadNibNamed:splashScreen owner:self options:nil] objectAtIndex:0];
+        UIStoryboard *sb = [UIStoryboard storyboardWithName:splashScreen bundle:nil];
+        UIViewController *vc = [sb instantiateViewControllerWithIdentifier:splashScreen];
+        
+        loadingView = vc.view;//[[[NSBundle mainBundle] loadNibNamed:splashScreen owner:self options:nil] objectAtIndex:0];
         CGRect frame = rootView.frame;
         frame.origin = CGPointMake(0, 0);
         loadingView.frame = frame;
